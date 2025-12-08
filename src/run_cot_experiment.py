@@ -23,8 +23,15 @@ def main() -> None:
     prompts = build_prompt_variants(tasks)
     truth_by_id = {t.id: t.ground_truth for t in tasks}
 
-    # 2. Run CoT method
-    cot = CoTMethod(config=CoTConfig())
+    # 2. Run CoT method using model settings from config
+    cot = CoTMethod(
+        model_name=cfg.model.model_name,
+        temperature=cfg.model.temperature,
+        max_tokens=cfg.model.max_tokens,
+        config=CoTConfig(),
+    )
+    predictions = cot.run(prompts)
+
     predictions = cot.run(prompts)
 
     # 3. Evaluate

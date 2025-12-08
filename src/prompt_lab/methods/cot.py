@@ -1,62 +1,78 @@
 """
 Chain-of-Thought (CoT) style prompting method.
 
-For now this method:
-- takes existing prompt variants
-- wraps them with an instruction to "think step by step"
-- uses the same dummy answers logic as the baseline
-
-Later we will replace the dummy answers with real LLM calls.
+This version uses an LLMClient (DummyLLMClient by default) to generate answers.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from prompt_lab.dataset.generator import PromptVariant
-from prompt_lab.methods.baseline import BaselineResult  # reuse same result type
+from prompt_lab.methods.baseline import BaselineResult
+from prompt_lab.utils.llm_client import (
+    LLMClient,
+    LLMRequest,
+    LLMResponse,
+    DummyLLMClient,
+)
 
 
 @dataclass
 class CoTConfig:
-    """
-    Configuration options for the CoT method.
-
-    This is very small for now, but we keep it so later we can add things like:
-    - number of reasoning steps
-    - whether to ask for explanation + final answer separately
-    """
+    """Configuration for the Chain-of-Thought method."""
     add_prefix: bool = True
     add_suffix: bool = True
 
 
 class CoTMethod:
     """
-    Simple Chain-of-Thought style method.
+    Simple Chain-of-Thought prompting method.
 
-    It modifies the prompt text a bit to encourage reasoning,
-    but still returns dummy answers (for now).
+    It wraps the original prompt with CoT-style instructions
+    and sends it to an LLM client.
     """
 
-    def __init__(self, config: CoTConfig | None = None) -> None:
+    def __init__(
+        self,
+        model_name: str,
+        temperature: float = 0.0,
+        max_tokens: int = 256,
+        config: Optional[CoTConfig] = None,
+        llm_client: Optional[LLMClient] = None,
+    ) -> None:
+        self.model_name = model_name
+        self.temperature = temperature
+        self.max_tokens = max_tokens
         self.config = config or CoTConfig()
+        self._llm: LLMClient = llm_client or DummyLLMClient()
 
     def _wrap_prompt_text(self, original: str) -> str:
-        """Add CoT-style instructions around the original prompt."""
+        """Add CoT-style instructions around the prompt text."""
         parts: list[str] = []
 
         if self.config.add_prefix:
-            parts.append(
-                "You are an AI assistant. Let's think about this step by step."
-            )
+            parts.append("You are an AI assistant. Let's think step by step.")
 
         parts.append(original)
 
         if self.config.add_suffix:
             parts.append(
-                "Take a moment to reason carefully, then provide a clear final answer."
+                "Think carefully through the problem, then provide a concise final answer."
             )
 
         return "\n\n".join(parts)
+
+    def _call_llm(self, prompt_text: str) -> LLMResponse:
+        """Helper to send a single prompt to the LLM client."""
+        req = LLMRequest(
+            model_name=self.model_name,
+            prompt=prompt_text,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+        )
+        return self._llm.complete(req)
 
     def run(self, prompts: List[PromptVariant]) -> List[BaselineResult]:
         """
@@ -68,24 +84,17 @@ class CoTMethod:
         results: List[BaselineResult] = []
 
         for p in prompts:
-            # Build the CoT-style prompt
             cot_prompt_text = self._wrap_prompt_text(p.prompt_text)
-
-            # For now we still use the same dummy answer logic as baseline.
-            # Later, this will call the LLM and (hopefully) perform better.
-            if p.task_id == "math_1":
-                dummy_answer = "12"
-            elif p.task_id == "sentiment_1":
-                dummy_answer = "positive"
-            else:
-                dummy_answer = "DUMMY_ANSWER"
+            response = self._call_llm(cot_prompt_text)
 
             results.append(
                 BaselineResult(
                     task_id=p.task_id,
                     prompt_length=p.length,
                     prompt_text=cot_prompt_text,
-                    predicted_answer=dummy_answer,
+                    predicted_answer=response.text,
+                    tokens_input=response.tokens_input,
+                    tokens_output=response.tokens_output,
                 )
             )
 
