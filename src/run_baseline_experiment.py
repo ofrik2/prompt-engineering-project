@@ -1,35 +1,27 @@
-"""
-Run a simple baseline experiment end-to-end:
-
-- generate a small dummy dataset
-- build short/medium/long prompt variants
-- run the BaselineMethod on all prompts
-- compute accuracy
-- save detailed predictions and metrics to the `results/` folder
-
-This is a first concrete "experiment script" that we can later extend
-or replace by a more generic experiment runner.
-"""
-
 from pathlib import Path
 import csv
 
 from prompt_lab.dataset.generator import generate_dummy_tasks, build_prompt_variants
 from prompt_lab.methods.baseline import BaselineMethod
 from prompt_lab.evaluator.metrics import compute_accuracy
+from prompt_lab.config.loader import load_config
 
 
 def main() -> None:
+    # Load configuration
+    cfg = load_config()
+
     # Figure out project root (one level above `src`)
     project_root = Path(__file__).resolve().parents[1]
-    results_dir = project_root / "results"
+
+    # Use output_dir from config (e.g., "results")
+    results_dir = project_root / cfg.experiment.output_dir
     results_dir.mkdir(exist_ok=True)
 
     # 1. Prepare data
     tasks = generate_dummy_tasks()
     prompts = build_prompt_variants(tasks)
 
-    # Build a simple lookup: task_id -> ground_truth
     truth_by_id = {t.id: t.ground_truth for t in tasks}
 
     # 2. Run baseline method
@@ -81,7 +73,7 @@ def main() -> None:
     print(f"Accuracy:           {eval_result.accuracy:.3f}")
     print(f"Predictions saved to: {predictions_path}")
     print(f"Metrics saved to:     {metrics_path}")
-
+    print("OUTPUT DIR FROM CONFIG:", cfg.experiment.output_dir)
 
 if __name__ == "__main__":
     main()

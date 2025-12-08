@@ -1,0 +1,15 @@
+# Default configuration for prompt-engineering experiments
+
+model:
+  provider: "openai"        # placeholder for now, can change later
+  model_name: "gpt-4.1-mini"  # or any string you want
+  temperature: 0.2
+  max_tokens: 256
+
+experiment:
+  name: "baseline_vs_cot_dummy"
+  methods:
+    - "baseline"
+    - "cot"
+  dataset: "dummy"          # later this can be "file" and a path
+  output_dir: "results"

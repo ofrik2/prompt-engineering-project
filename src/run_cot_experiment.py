@@ -1,25 +1,21 @@
-"""
-Run a simple Chain-of-Thought (CoT) experiment end-to-end:
-
-- generate a small dummy dataset
-- build short/medium/long prompt variants
-- run the CoTMethod on all prompts
-- compute accuracy
-- save detailed predictions and metrics to the `results/` folder
-"""
-
 from pathlib import Path
 import csv
 
 from prompt_lab.dataset.generator import generate_dummy_tasks, build_prompt_variants
 from prompt_lab.methods.cot import CoTMethod, CoTConfig
 from prompt_lab.evaluator.metrics import compute_accuracy
+from prompt_lab.config.loader import load_config
 
 
 def main() -> None:
+    # Load configuration
+    cfg = load_config()
+
     # Project root (one level above `src`)
     project_root = Path(__file__).resolve().parents[1]
-    results_dir = project_root / "results"
+
+    # Use output_dir from config
+    results_dir = project_root / cfg.experiment.output_dir
     results_dir.mkdir(exist_ok=True)
 
     # 1. Prepare data
