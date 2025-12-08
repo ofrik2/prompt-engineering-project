@@ -1,70 +1,94 @@
 """
 Baseline prompting method.
 
-For now this method does NOT call a real LLM.
-It just shows how the structure will look like.
-We will later replace the dummy parts with real API calls.
+This version uses an LLMClient (currently DummyLLMClient by default)
+to generate answers for each prompt.
 """
 
-from dataclasses import dataclass
-from typing import List
+from __future__ import annotations
 
-from prompt_lab.dataset.generator import Task, PromptVariant
+from dataclasses import dataclass
+from typing import List, Optional
+
+from prompt_lab.dataset.generator import PromptVariant
+from prompt_lab.utils.llm_client import (
+    LLMClient,
+    LLMRequest,
+    LLMResponse,
+    DummyLLMClient,
+)
 
 
 @dataclass
 class BaselineResult:
     """
     Result of applying the baseline method to a single prompt.
-    For now, this is very simple; we will expand it later.
     """
     task_id: str
     prompt_length: str
     prompt_text: str
     predicted_answer: str
+    tokens_input: Optional[int] = None
+    tokens_output: Optional[int] = None
 
 
 class BaselineMethod:
     """
-    Very simple baseline: just uses the prompt as-is.
+    Baseline prompting method.
 
-    Later this class will be changed to:
-    - call an LLM with the prompt_text
-    - parse the response
-    - return the answer + maybe reasoning
+    It:
+    - receives prompt variants (short/medium/long)
+    - sends each prompt to an LLMClient
+    - returns the raw text as `predicted_answer`
+
+    For now, we use DummyLLMClient by default, so no real API calls are made.
+    Later, we can inject a real LLM client.
     """
+
+    def __init__(
+        self,
+        model_name: str,
+        temperature: float = 0.0,
+        max_tokens: int = 256,
+        llm_client: Optional[LLMClient] = None,
+    ) -> None:
+        self.model_name = model_name
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        # If no client is given, fall back to a DummyLLMClient
+        self._llm: LLMClient = llm_client or DummyLLMClient()
+
+    def _call_llm(self, prompt_text: str) -> LLMResponse:
+        """Helper to send a single prompt to the LLM client."""
+        req = LLMRequest(
+            model_name=self.model_name,
+            prompt=prompt_text,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+        )
+        return self._llm.complete(req)
 
     def run(self, prompts: List[PromptVariant]) -> List[BaselineResult]:
         """
         Apply the baseline method to a list of prompt variants.
 
-        Right now:
-        - We do NOT talk to an LLM.
-        - We just return a dummy 'predicted_answer' so that
-          we can test the rest of the pipeline structure.
+        For each prompt:
+        - send it to the LLM client
+        - store the response text as predicted_answer
         """
         results: List[BaselineResult] = []
 
         for p in prompts:
-            # Very naive "smart" baseline:
-            # We only know the task_id here, so we cheat a bit:
-            # - if it's the math task, answer "12"
-            # - if it's the sentiment task, answer "positive"
-            # - otherwise, still use a dummy answer
-
-            if p.task_id == "math_1":
-                dummy_answer = "12"
-            elif p.task_id == "sentiment_1":
-                dummy_answer = "positive"
-            else:
-                dummy_answer = "DUMMY_ANSWER"
+            response = self._call_llm(p.prompt_text)
 
             results.append(
                 BaselineResult(
                     task_id=p.task_id,
                     prompt_length=p.length,
                     prompt_text=p.prompt_text,
-                    predicted_answer=dummy_answer,
+                    predicted_answer=response.text,
+                    tokens_input=response.tokens_input,
+                    tokens_output=response.tokens_output,
                 )
             )
 

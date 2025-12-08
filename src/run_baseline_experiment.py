@@ -25,7 +25,12 @@ def main() -> None:
     truth_by_id = {t.id: t.ground_truth for t in tasks}
 
     # 2. Run baseline method
-    baseline = BaselineMethod()
+    # 2. Run baseline method, using model settings from config
+    baseline = BaselineMethod(
+        model_name=cfg.model.model_name,
+        temperature=cfg.model.temperature,
+        max_tokens=cfg.model.max_tokens,
+    )
     predictions = baseline.run(prompts)
 
     # 3. Evaluate
