@@ -11,10 +11,10 @@ Date: DATE_HERE
 This document describes the structure of the project and how the main parts of the code fit together.  
 The system is a **research tool** that:
 
-- generates tasks and prompts,
-- sends them to an LLM,
-- collects the answers,
-- evaluates the results.
+- generates tasks and prompts
+- sends them to an LLM
+- collects the answers
+- evaluates the results
 
 ---
 
@@ -31,11 +31,11 @@ Flow (very simplified):
 
 1. You run a script (for example in the future: `python -m prompt_lab.run_experiment`).
 2. The script:
-   - loads config,
-   - loads or generates a dataset of tasks,
-   - applies different prompting methods (baseline, CoT, etc.),
-   - sends prompts to the LLM,
-   - saves outputs and metrics to `results/`.
+   - loads config
+   - loads or generates a dataset of tasks
+   - applies different prompting methods (baseline, CoT, etc.)
+   - sends prompts to the LLM
+   - saves outputs and metrics to `results/`
 
 ---
 
