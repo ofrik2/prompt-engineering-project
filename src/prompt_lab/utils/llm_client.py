@@ -1,10 +1,10 @@
 """
-LLM client abstraction for the Prompt Lab project.
+Project-wide LLM abstraction.
 
 - LLMRequest / LLMResponse dataclasses
 - LLMClient abstract base
-- DummyLLMClient: fake, deterministic responses (no network)
-- OpenAILLMClient: real client using OpenAI's Python SDK (optional)
+- DummyLLMClient: fake, deterministic responses (for development)
+- AzureOpenAILLMClient: adapter around the azure_openai_helper package
 """
 
 from __future__ import annotations
@@ -16,9 +16,6 @@ import os
 
 @dataclass
 class LLMRequest:
-    """
-    A simple request to an LLM.
-    """
     model_name: str
     prompt: str
     temperature: float = 0.0
@@ -27,27 +24,20 @@ class LLMRequest:
 
 @dataclass
 class LLMResponse:
-    """
-    A simple response from an LLM.
-    """
     text: str
     tokens_input: Optional[int] = None
     tokens_output: Optional[int] = None
 
 
 class LLMClient:
-    """
-    Abstract base class for LLM clients.
-    """
+    """Abstract base class for LLM clients."""
 
     def complete(self, request: LLMRequest) -> LLMResponse:
-        raise NotImplementedError("LLMClient.complete() must be implemented by subclasses.")
+        raise NotImplementedError
 
 
 class DummyLLMClient(LLMClient):
-    """
-    A dummy LLM client used for testing the pipeline structure.
-    """
+    """Fake client for development and testing."""
 
     def complete(self, request: LLMRequest) -> LLMResponse:
         snippet = request.prompt[:80].replace("\n", " ")
@@ -55,7 +45,6 @@ class DummyLLMClient(LLMClient):
             f"[DUMMY RESPONSE] I received a prompt starting with: '{snippet}...'. "
             f"This is a fake answer for model '{request.model_name}'."
         )
-
         return LLMResponse(
             text=fake_text,
             tokens_input=len(request.prompt.split()),
@@ -63,57 +52,56 @@ class DummyLLMClient(LLMClient):
         )
 
 
-class OpenAILLMClient(LLMClient):
+class AzureOpenAILLMClient(LLMClient):
     """
-    Real LLM client using the OpenAI Python SDK.
-
-    Expects an environment variable OPENAI_API_KEY to be set.
+    Real client that uses your azure_openai_helper package to talk to Azure OpenAI.
     """
 
-    def __init__(self, api_key: Optional[str] = None) -> None:
-        # Delay import so that dummy usage doesn't require openai installed
+    def __init__(self, model_name: Optional[str] = None) -> None:
+        # Import your helper here
         try:
-            from openai import OpenAI  # type: ignore
+            from azure_openai_helper import (
+                llm_query,
+                validate_configuration,
+                ConfigurationError,
+            )
         except ImportError as e:
             raise ImportError(
-                "The 'openai' package is not installed. "
-                "Install it with: pip install openai"
+                "Could not import 'azure_openai_helper'. "
+                "Make sure the azure_openai_helper folder is in your project root "
+                "and has an __init__.py file."
             ) from e
 
-        self._OpenAI = OpenAI
-        self._api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if not self._api_key:
+        # Validate configuration and keep references
+        try:
+            self._config = validate_configuration()
+        except ConfigurationError as e:
             raise ValueError(
-                "OPENAI_API_KEY is not set. Please set it in your environment "
-                "before using OpenAILLMClient."
-            )
+                f"Azure OpenAI configuration is invalid: {e}"
+            ) from e
 
-        # Create the underlying OpenAI client
-        self._client = self._OpenAI(api_key=self._api_key)
+        self._llm_query = llm_query
+        # If a specific deployment name / label is passed, remember it.
+        # Otherwise, the helper will use the primary deployment by default.
+        self._model_name = model_name
 
     def complete(self, request: LLMRequest) -> LLMResponse:
-        """
-        Call OpenAI's chat completions endpoint with a simple user message.
-        """
-        # We assume model_name is a chat-capable model (gpt-4.1-mini, gpt-4o, etc.)
-        resp = self._client.chat.completions.create(
-            model=request.model_name,
-            messages=[
-                {"role": "user", "content": request.prompt},
-            ],
+        # Decide which "model" to pass to the helper:
+        # - if request.model_name is set, prefer it
+        # - otherwise, fall back to the model name from __init__
+        model_to_use = request.model_name or self._model_name
+
+        text = self._llm_query(
+            prompt=request.prompt,
             temperature=request.temperature,
             max_tokens=request.max_tokens,
+            system_message=None,
+            model=model_to_use,
         )
 
-        # Grab the first choice
-        text = resp.choices[0].message.content or ""
-
-        # The v1 SDK has 'usage' with token counts
-        tokens_input = getattr(resp.usage, "prompt_tokens", None)
-        tokens_output = getattr(resp.usage, "completion_tokens", None)
-
+        # The helper doesn't currently expose token-level usage, so we keep them None.
         return LLMResponse(
             text=text,
-            tokens_input=tokens_input,
-            tokens_output=tokens_output,
+            tokens_input=None,
+            tokens_output=None,
         )

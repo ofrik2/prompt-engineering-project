@@ -5,7 +5,8 @@ from prompt_lab.dataset.generator import generate_dummy_tasks, build_prompt_vari
 from prompt_lab.methods.baseline import BaselineMethod
 from prompt_lab.evaluator.metrics import compute_accuracy
 from prompt_lab.config.loader import load_config
-from prompt_lab.utils.llm_client import DummyLLMClient, OpenAILLMClient
+from prompt_lab.utils.llm_client import DummyLLMClient, AzureOpenAILLMClient
+
 
 
 from prompt_lab.dataset.generator import (
@@ -41,20 +42,21 @@ def main() -> None:
     truth_by_id = {t.id: t.ground_truth for t in tasks}
 
     # 2. Choose LLM client based on config
-    if cfg.model.provider == "openai":
-        llm_client = OpenAILLMClient()
+    if cfg.model.provider == "azure":
+        llm_client = AzureOpenAILLMClient(model_name=cfg.model.model_name)
     elif cfg.model.provider == "dummy":
         llm_client = DummyLLMClient()
     else:
         raise ValueError(f"Unknown model provider: {cfg.model.provider!r}")
 
-    # 3. Run baseline method, using model settings from config
+    # 3. Run baseline method
     baseline = BaselineMethod(
         model_name=cfg.model.model_name,
         temperature=cfg.model.temperature,
         max_tokens=cfg.model.max_tokens,
         llm_client=llm_client,
     )
+
 
     predictions = baseline.run(prompts)
 

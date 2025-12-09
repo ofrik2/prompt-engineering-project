@@ -9,7 +9,9 @@ from prompt_lab.dataset.generator import (
 from prompt_lab.methods.cot import CoTMethod, CoTConfig
 from prompt_lab.evaluator.metrics import compute_accuracy
 from prompt_lab.config.loader import load_config
-from prompt_lab.utils.llm_client import DummyLLMClient, OpenAILLMClient
+from prompt_lab.utils.llm_client import DummyLLMClient, AzureOpenAILLMClient
+
+
 
 
 
@@ -38,14 +40,13 @@ def main() -> None:
 
 
     # 2. Choose LLM client based on config
-    if cfg.model.provider == "openai":
-        llm_client = OpenAILLMClient()
+    if cfg.model.provider == "azure":
+        llm_client = AzureOpenAILLMClient(model_name=cfg.model.model_name)
     elif cfg.model.provider == "dummy":
         llm_client = DummyLLMClient()
     else:
         raise ValueError(f"Unknown model provider: {cfg.model.provider!r}")
 
-    # 3. Run CoT method
     cot = CoTMethod(
         model_name=cfg.model.model_name,
         temperature=cfg.model.temperature,
@@ -53,6 +54,7 @@ def main() -> None:
         config=CoTConfig(),
         llm_client=llm_client,
     )
+
     predictions = cot.run(prompts)
 
 
