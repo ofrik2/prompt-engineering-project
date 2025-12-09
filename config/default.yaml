@@ -7,11 +7,17 @@ model:
   max_tokens: 256
 
 experiment:
-  name: "baseline_vs_cot_dummy"
+  name: "baseline_vs_cot_fewshot"
   methods:
     - "baseline"
     - "cot"
-  dataset: "file"              # options: "dummy" or "file"
+    - "fewshot"
+  dataset: "file"
   dataset_path: "data/tasks_v1.json"
   output_dir: "results"
+
+fewshot_examples:
+  - { input: "I loved the dinner, it was great.", output: "positive" }
+  - { input: "I hated the movie, it was terrible.", output: "negative" }
+
 
