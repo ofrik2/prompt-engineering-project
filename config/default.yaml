@@ -1,7 +1,7 @@
 # Default configuration for prompt-engineering experiments
 
 model:
-  provider: "azure"
+  provider: "dummy"
   model_name: "primary"   # or "secondary" or a specific deployment name as your helper expects
   temperature: 0.0
   max_tokens: 256
@@ -9,10 +9,7 @@ model:
 
 experiment:
   name: "baseline_vs_cot_fewshot"
-  methods:
-    - "baseline"
-    - "cot"
-    - "fewshot"
+  methods: ["baseline", "cot", "fewshot"]
   dataset: "file"
   dataset_path: "data/tasks_v1.json"
   output_dir: "results"

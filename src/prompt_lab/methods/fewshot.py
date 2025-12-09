@@ -12,11 +12,14 @@ from typing import List, Optional
 
 from prompt_lab.dataset.generator import PromptVariant, Task
 from prompt_lab.methods.baseline import BaselineResult
+
+# 🔧 FIXED: Import all required LLM-related classes
 from prompt_lab.utils.llm_client import (
+    DummyLLMClient,
+    AzureOpenAILLMClient,
     LLMClient,
     LLMRequest,
     LLMResponse,
-    DummyLLMClient,
 )
 
 
@@ -38,27 +41,16 @@ class FewShotMethod:
     """
     Few-Shot prompting method.
 
-    We prepend several demonstration examples before the user's prompt:
-
-    Example:
-        Input: "I loved the movie..."
-        Output: "positive"
-
-        Input: "The food was cold..."
-        Output: "negative"
-
-        --- User Prompt ---
-        Input: "I feel amazing today!"
-        Output:
+    We prepend several demonstration examples before the user's prompt.
     """
 
     def __init__(
-            self,
-            model_name: str,
-            temperature: float = 0.0,
-            max_tokens: int = 256,
-            config: FewShotConfig | None = None,
-            llm_client: Optional[LLMClient] = None,
+        self,
+        model_name: str,
+        temperature: float = 0.0,
+        max_tokens: int = 256,
+        config: FewShotConfig | None = None,
+        llm_client: Optional[LLMClient] = None,
     ) -> None:
         self.model_name = model_name
         self.temperature = temperature
@@ -71,11 +63,10 @@ class FewShotMethod:
 
         parts: list[str] = []
 
-        # Prepend instruction
         if self.config.add_instruction:
             parts.append("Below are examples of correct responses. Follow the patterns.")
 
-        # Add examples
+        # Add example demonstrations
         for ex in self.config.examples:
             parts.append(
                 f"Input: {ex.input_text}\nOutput: {ex.output_text}"
@@ -87,6 +78,7 @@ class FewShotMethod:
         return "\n\n".join(parts)
 
     def _call_llm(self, prompt_text: str) -> LLMResponse:
+        """Send prompt to the LLM client."""
         req = LLMRequest(
             model_name=self.model_name,
             prompt=prompt_text,

@@ -10,7 +10,7 @@ from prompt_lab.methods.fewshot import FewShotMethod, FewShotConfig
 from prompt_lab.methods.baseline import BaselineResult
 from prompt_lab.evaluator.metrics import compute_accuracy
 from prompt_lab.config.loader import load_config
-from prompt_lab.utils.llm_client import DummyLLMClient, OpenAILLMClient
+from prompt_lab.utils.llm_client import DummyLLMClient, AzureOpenAILLMClient
 
 
 def main():
@@ -29,10 +29,12 @@ def main():
     truth_by_id = {t.id: t.ground_truth for t in tasks}
 
     # choose LLM provider
-    if cfg.model.provider == "openai":
-        llm_client = OpenAILLMClient()
-    else:
+    if cfg.model.provider == "azure":
+        llm_client = AzureOpenAILLMClient(model_name=cfg.model.model_name)
+    elif cfg.model.provider == "dummy":
         llm_client = DummyLLMClient()
+    else:
+        raise ValueError(f"Unknown model provider: {cfg.model.provider!r}")
 
     # Few-shot config
     fs_config = FewShotConfig(examples=cfg.fewshot_examples)
