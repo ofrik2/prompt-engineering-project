@@ -5,7 +5,14 @@ from prompt_lab.dataset.generator import generate_dummy_tasks, build_prompt_vari
 from prompt_lab.methods.baseline import BaselineMethod
 from prompt_lab.evaluator.metrics import compute_accuracy
 from prompt_lab.config.loader import load_config
+from prompt_lab.utils.llm_client import DummyLLMClient, OpenAILLMClient
 
+
+from prompt_lab.dataset.generator import (
+    generate_dummy_tasks,
+    build_prompt_variants,
+    load_tasks_from_json,
+)
 
 def main() -> None:
     # Load configuration
@@ -18,19 +25,37 @@ def main() -> None:
     results_dir = project_root / cfg.experiment.output_dir
     results_dir.mkdir(exist_ok=True)
 
-    # 1. Prepare data
-    tasks = generate_dummy_tasks()
+    # 1. Prepare data (choose source based on config)
+    if cfg.experiment.dataset == "dummy":
+        tasks = generate_dummy_tasks()
+    elif cfg.experiment.dataset == "file":
+        # dataset_path is relative to project root
+        dataset_path = project_root / cfg.experiment.dataset_path
+        tasks = load_tasks_from_json(dataset_path)
+    else:
+        raise ValueError(f"Unknown dataset type: {cfg.experiment.dataset!r}")
+
     prompts = build_prompt_variants(tasks)
+
 
     truth_by_id = {t.id: t.ground_truth for t in tasks}
 
-    # 2. Run baseline method
-    # 2. Run baseline method, using model settings from config
+    # 2. Choose LLM client based on config
+    if cfg.model.provider == "openai":
+        llm_client = OpenAILLMClient()
+    elif cfg.model.provider == "dummy":
+        llm_client = DummyLLMClient()
+    else:
+        raise ValueError(f"Unknown model provider: {cfg.model.provider!r}")
+
+    # 3. Run baseline method, using model settings from config
     baseline = BaselineMethod(
         model_name=cfg.model.model_name,
         temperature=cfg.model.temperature,
         max_tokens=cfg.model.max_tokens,
+        llm_client=llm_client,
     )
+
     predictions = baseline.run(prompts)
 
     # 3. Evaluate

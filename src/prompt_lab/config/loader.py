@@ -30,8 +30,10 @@ class ModelConfig:
 class ExperimentConfig:
     name: str
     methods: List[str]
-    dataset: str
+    dataset: str          # "dummy" or "file"
+    dataset_path: str     # used when dataset == "file"
     output_dir: str
+
 
 
 @dataclass
@@ -87,7 +89,9 @@ def load_config(path: Path | None = None) -> AppConfig:
         name=str(experiment_raw.get("name", "")),
         methods=list(experiment_raw.get("methods", [])),
         dataset=str(experiment_raw.get("dataset", "")),
+        dataset_path=str(experiment_raw.get("dataset_path", "")),
         output_dir=str(experiment_raw.get("output_dir", "results")),
     )
+
 
     return AppConfig(model=model_cfg, experiment=experiment_cfg)

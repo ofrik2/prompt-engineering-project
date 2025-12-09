@@ -7,6 +7,9 @@ placeholder dataset generator. We will expand this step by step.
 
 from dataclasses import dataclass
 from typing import List, Literal
+from pathlib import Path
+import json
+
 
 
 TaskType = Literal["sentiment", "math", "logic"]
@@ -100,3 +103,35 @@ def build_prompt_variants(tasks: List[Task]) -> List[PromptVariant]:
         )
 
     return variants
+
+def load_tasks_from_json(path: str | Path) -> List[Task]:
+    """
+    Load tasks from a JSON file with a list of objects like:
+    {
+      "id": "...",
+      "task_type": "...",
+      "input_text": "...",
+      "ground_truth": "..."
+    }
+    """
+    p = Path(path)
+
+    if not p.exists():
+        raise FileNotFoundError(f"Task file not found: {p}")
+
+    with p.open("r", encoding="utf-8") as f:
+        raw_list = json.load(f)
+
+    tasks: List[Task] = []
+
+    for item in raw_list:
+        tasks.append(
+            Task(
+                id=str(item["id"]),
+                task_type=item["task_type"],      # Literal enforces allowed values at type level
+                input_text=str(item["input_text"]),
+                ground_truth=str(item["ground_truth"]),
+            )
+        )
+
+    return tasks
