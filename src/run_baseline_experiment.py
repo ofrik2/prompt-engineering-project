@@ -49,6 +49,11 @@ def main() -> None:
     else:
         raise ValueError(f"Unknown model provider: {cfg.model.provider!r}")
 
+    print(
+        f"[DEBUG] run_baseline_experiment: provider={cfg.model.provider}, "
+        f"llm_client={type(llm_client).__name__}"
+    )
+
     # 3. Run baseline method
     baseline = BaselineMethod(
         model_name=cfg.model.model_name,

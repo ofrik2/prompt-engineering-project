@@ -63,46 +63,79 @@ def generate_dummy_tasks() -> List[Task]:
 
 def build_prompt_variants(tasks: List[Task]) -> List[PromptVariant]:
     """
-    For each task, create simple short/medium/long prompt variants.
-    Right now this is very naive; we will improve it later.
+    For each task, create short/medium/long prompt variants WITH STRICT
+    ANSWER-FORMAT ENFORCEMENT so that evaluation is reliable.
     """
+
     variants: List[PromptVariant] = []
 
     for task in tasks:
-        # Short: very minimal
+        # === Build the task-type–specific answer constraint block ===
+        if task.task_type == "sentiment":
+            format_block = (
+                "Answer with EXACTLY ONE WORD: \"positive\" or \"negative\".\n"
+                "Do NOT explain your answer.\n"
+                "Only output the one-word label.\n"
+            )
+        elif task.task_type == "math":
+            format_block = (
+                "Provide ONLY the final numeric answer.\n"
+                "Do NOT explain your calculation.\n"
+                "Only output the number.\n"
+            )
+        elif task.task_type == "logic":
+            format_block = (
+                "Answer with EXACTLY ONE WORD: \"yes\" or \"no\".\n"
+                "Do NOT explain your reasoning.\n"
+                "Only output the one-word label.\n"
+            )
+        else:
+            raise ValueError(f"Unknown task type: {task.task_type}")
+
+        # === Short variant ===
         variants.append(
             PromptVariant(
                 task_id=task.id,
                 length="short",
-                prompt_text=task.input_text,
+                prompt_text=(
+                    f"{task.input_text}\n\n"
+                    f"{format_block}"
+                    "Answer:"
+                ),
             )
         )
 
-        # Medium: add a simple instruction
+        # === Medium variant ===
         variants.append(
             PromptVariant(
                 task_id=task.id,
                 length="medium",
-                prompt_text=f"Please answer the following question briefly:\n{task.input_text}",
+                prompt_text=(
+                    f"Please answer the following task.\n\n"
+                    f"Task: {task.input_text}\n\n"
+                    f"{format_block}"
+                    "Answer:"
+                ),
             )
         )
 
-        # Long: add more explanation/context (still simple for now)
+        # === Long variant ===
         variants.append(
             PromptVariant(
                 task_id=task.id,
                 length="long",
                 prompt_text=(
-                    "You are an AI assistant participating in an academic experiment "
-                    "on prompt engineering. Read the task carefully and provide a clear, "
-                    "correct, and concise answer.\n\n"
+                    "You are an AI assistant participating in an academic experiment on "
+                    "prompt engineering. Follow ALL instructions carefully.\n\n"
                     f"Task: {task.input_text}\n\n"
+                    f"{format_block}"
                     "Answer:"
                 ),
             )
         )
 
     return variants
+
 
 def load_tasks_from_json(path: str | Path) -> List[Task]:
     """

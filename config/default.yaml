@@ -1,8 +1,8 @@
 # Default configuration for prompt-engineering experiments
 
 model:
-  provider: "dummy"
-  model_name: "primary"   # or "secondary" or a specific deployment name as your helper expects
+  provider: "azure"
+  model_name: "gpt-4o"
   temperature: 0.0
   max_tokens: 256
 
