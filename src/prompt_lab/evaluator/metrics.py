@@ -10,6 +10,7 @@ Later we can add:
 
 from dataclasses import dataclass
 from typing import List, Dict
+import re
 
 from prompt_lab.dataset.generator import Task
 from prompt_lab.methods.baseline import BaselineResult
@@ -23,17 +24,29 @@ class EvaluationResult:
     accuracy: float
 
 
+def _normalize_label(s: str) -> str:
+    """
+    Normalize a 1-word label-style answer:
+    - strip whitespace
+    - lowercase
+    - remove trailing punctuation/symbols (e.g., 'positive.' -> 'positive')
+    """
+    s = (s or "").strip().lower()
+    # Remove one or more trailing non-word / non-dash chars
+    # Examples: "positive." -> "positive", "true!!!" -> "true", "5," -> "5"
+    s = re.sub(r"[^\w\-]+$", "", s)
+    return s
+
+
 def compute_accuracy(tasks: List[Task], predictions: List[BaselineResult]) -> EvaluationResult:
     """
-    Compute simple accuracy = (# correct) / (# total).
+    Compute accuracy = (# correct) / (# total).
 
     Matching is done by:
     - task_id
-    - exact string equality between predicted_answer and ground_truth
-
-    For now, this is intentionally simple.
+    - normalized string equality between predicted_answer and ground_truth
+      (so harmless trailing punctuation doesn't make a correct answer wrong)
     """
-    # Build a lookup dictionary: task_id -> ground_truth
     truth_by_id: Dict[str, str] = {t.id: t.ground_truth for t in tasks}
 
     total = 0
@@ -47,7 +60,10 @@ def compute_accuracy(tasks: List[Task], predictions: List[BaselineResult]) -> Ev
             # Unknown task_id – we just skip correctness, but still count in total
             continue
 
-        if p.predicted_answer == gt:
+        pred_norm = _normalize_label(p.predicted_answer)
+        gt_norm = _normalize_label(gt)
+
+        if pred_norm == gt_norm:
             correct += 1
 
     accuracy = correct / total if total > 0 else 0.0
