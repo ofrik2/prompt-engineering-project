@@ -199,9 +199,7 @@ insight into model behavior.
 
 ### Figure 1 — Overall Accuracy by Prompting Strategy
 
-![Overall accuracy](analysis_results/overall_accuracy.png)
-![overall_accuracy.png](analysis_results/overall_accuracy.png)
-
+![Overall accuracy](assets/overall_accuracy.png)
 *Figure 1.* Overall exact-match accuracy across prompting strategies. Few-shot
 prompting slightly improves performance over the baseline. In contrast,
 Chain-of-Thought (CoT) prompting exhibits a consistent drop in accuracy when strict
@@ -215,7 +213,7 @@ following.
 
 ### Figure 2 — Effect of Prompt Length
 
-![Prompt length variation](analysis_results/prompt_variation_plot.png)
+![Prompt length variation](assets/prompt_variation_plot.png)
 
 *Figure 2.* Accuracy as a function of prompt length. Medium-length prompts
 consistently outperform both short and long prompts across strategies.
@@ -228,7 +226,7 @@ instruction overload.
 
 ### Figure 3 — Method Disagreement Analysis
 
-![Method disagreement](analysis_results/method_disagreement_heatmap.png)
+![Method disagreement](assets/method_disagreement_heatmap.png)
 
 *Figure 3.* Pairwise disagreement rates between prompting strategies. High
 disagreement indicates that different prompting strategies often lead the model
@@ -242,7 +240,7 @@ differences.
 
 ### Figure 4 — Chain-of-Thought Overthinking
 
-![CoT overthinking](analysis_results/cot_overthinking_plot.png)
+![CoT overthinking](assets/cot_overthinking_plot.png)
 
 *Figure 4.* Comparison of baseline and Chain-of-Thought accuracy across prompt
 lengths. CoT frequently produces verbose outputs that violate the one-word output
@@ -254,7 +252,7 @@ We refer to this failure mode as *overthinking*.
 
 ### Figure 5 — Few-shot Prompting Effect
 
-![Few-shot effect](analysis_results/fewshot_effect_plot.png)
+![Few-shot effect](assets/fewshot_effect_plot.png)
 
 *Figure 5.* Accuracy improvement achieved by few-shot prompting relative to the
 baseline. The improvement is most pronounced for short and medium prompts, where
