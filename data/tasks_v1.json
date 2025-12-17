@@ -1,0 +1,38 @@
+[
+  {
+    "id": "sentiment_1",
+    "task_type": "sentiment",
+    "input_text": "I loved the movie, it was fantastic!",
+    "ground_truth": "positive"
+  },
+  {
+    "id": "sentiment_2",
+    "task_type": "sentiment",
+    "input_text": "The food was terrible and the service was slow.",
+    "ground_truth": "negative"
+  },
+  {
+    "id": "math_1",
+    "task_type": "math",
+    "input_text": "What is 7 + 5?",
+    "ground_truth": "12"
+  },
+  {
+    "id": "math_2",
+    "task_type": "math",
+    "input_text": "If a train travels 90 km in 1.5 hours, what is its average speed in km/h?",
+    "ground_truth": "60"
+  },
+  {
+    "id": "logic_1",
+    "task_type": "logic",
+    "input_text": "If all A are B, and all B are C, are all A also C?",
+    "ground_truth": "yes"
+  },
+  {
+    "id": "logic_2",
+    "task_type": "logic",
+    "input_text": "If it is raining, the ground is wet. The ground is not wet. Is it raining?",
+    "ground_truth": "no"
+  }
+]

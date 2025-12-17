@@ -1,0 +1,112 @@
+[
+  {
+    "id": 1,
+    "task_type": "sentiment",
+    "input_text": "I absolutely loved the dinner, it was perfect.",
+    "ground_truth": "positive"
+  },
+  {
+    "id": 2,
+    "task_type": "sentiment",
+    "input_text": "The service was slow and the food was cold.",
+    "ground_truth": "negative"
+  },
+  {
+    "id": 3,
+    "task_type": "sentiment",
+    "input_text": "This book changed my life for the better.",
+    "ground_truth": "positive"
+  },
+  {
+    "id": 4,
+    "task_type": "sentiment",
+    "input_text": "The concert was a huge disappointment.",
+    "ground_truth": "negative"
+  },
+  {
+    "id": 5,
+    "task_type": "sentiment",
+    "input_text": "The new update makes the app much easier to use.",
+    "ground_truth": "positive"
+  },
+  {
+    "id": 6,
+    "task_type": "sentiment",
+    "input_text": "I regret spending money on this product.",
+    "ground_truth": "negative"
+  },
+
+  {
+    "id": 7,
+    "task_type": "math",
+    "input_text": "What is 7 + 5?",
+    "ground_truth": "12"
+  },
+  {
+    "id": 8,
+    "task_type": "math",
+    "input_text": "What is 15 - 9?",
+    "ground_truth": "6"
+  },
+  {
+    "id": 9,
+    "task_type": "math",
+    "input_text": "What is 6 * 4?",
+    "ground_truth": "24"
+  },
+  {
+    "id": 10,
+    "task_type": "math",
+    "input_text": "What is 21 / 3?",
+    "ground_truth": "7"
+  },
+  {
+    "id": 11,
+    "task_type": "math",
+    "input_text": "If you have 8 apples and buy 5 more, how many apples do you have in total?",
+    "ground_truth": "13"
+  },
+  {
+    "id": 12,
+    "task_type": "math",
+    "input_text": "A train travels 90 kilometers in 3 hours. What is its speed in kilometers per hour?",
+    "ground_truth": "30"
+  },
+
+  {
+    "id": 13,
+    "task_type": "logic",
+    "input_text": "Is 17 a prime number?",
+    "ground_truth": "yes"
+  },
+  {
+    "id": 14,
+    "task_type": "logic",
+    "input_text": "Is the statement 'all squares are rectangles' true?",
+    "ground_truth": "yes"
+  },
+  {
+    "id": 15,
+    "task_type": "logic",
+    "input_text": "Is 0 greater than 5?",
+    "ground_truth": "no"
+  },
+  {
+    "id": 16,
+    "task_type": "logic",
+    "input_text": "If today is Monday, will tomorrow be Wednesday?",
+    "ground_truth": "no"
+  },
+  {
+    "id": 17,
+    "task_type": "logic",
+    "input_text": "Does water freeze at 0 degrees Celsius at standard pressure?",
+    "ground_truth": "yes"
+  },
+  {
+    "id": 18,
+    "task_type": "logic",
+    "input_text": "Is every even number divisible by 3?",
+    "ground_truth": "no"
+  }
+]
