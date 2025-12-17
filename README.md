@@ -2,70 +2,46 @@
 
 ## Overview
 
-This project presents an experimental framework for systematically studying how
-prompt engineering choices influence the behavior of Large Language Models (LLMs).
-Rather than treating prompt engineering as a purely heuristic practice, this work
-adopts an **academic–reflective approach** that critically examines when common
-prompt engineering techniques help, when they hurt, and why.
+This project investigates prompt engineering strategies for Large Language Models (LLMs)
+within a structured, reproducible experimental framework. In addition to evaluating
+prompting methods and reporting empirical results, the project explicitly demonstrates
+**agent-based development**, as required by the course-wide guidelines.
 
-The project focuses on the interaction between:
-- prompt length,
-- prompt content,
-- prompting strategy (baseline, few-shot, Chain-of-Thought),
-- and **strict output constraints**.
+Throughout the development process, an LLM was used as an *active agent* to:
+- understand and refine assignment requirements,
+- design the experimental architecture,
+- debug implementation details,
+- analyze unexpected experimental behavior,
+- audit the repository against submission guidelines,
+- and assist in writing technical documentation.
 
-In many real-world systems, models are required to follow precise output formats.
-Accordingly, this project treats **instruction-following as a first-class
-objective**, not merely a side effect of semantic correctness.
+Accordingly, this repository should be viewed not only as a prompt-engineering experiment,
+but also as a case study in **using LLMs as collaborators in software and research workflows**.
 
-The repository is designed to function both as:
-1. a **reproducible experimental research framework**, and
-2. a **usable Python package and command-line tool**.
+This README focuses on:
+- installation and execution,
+- configuration and reproducibility,
+- project structure and design decisions,
+- agent-based development methodology.
 
----
-
-# Part I — Package Usage, Design Rationale & Reproducibility
-
-## Design Motivation
-
-Prompt engineering is often presented as a collection of best practices, such as
-using longer prompts or encouraging step-by-step reasoning. However, these
-recommendations are highly context-dependent. In particular, little attention is
-given to scenarios in which models must strictly adhere to output constraints
-(e.g., producing exactly one word).
-
-This project was designed to explicitly explore such settings. By enforcing
-strict output constraints, we surface failure modes—such as verbosity,
-overthinking, and instruction overload—that are often hidden in unconstrained
-evaluations.
+The experimental results and their interpretation are documented separately in the
+Results section and accompanying analysis artifacts.
 
 ---
 
-## Project Structure
+## Installation and Environment Setup
 
-```
-prompt-engineering-project/
-├── pyproject.toml
-├── src/
-│   └── prompt_lab/
-│       ├── config/
-│       ├── dataset/
-│       ├── evaluator/
-│       ├── methods/
-│       ├── pipeline.py
-│       └── cli.py
-├── config/
-├── data/
-├── results/
-├── analysis_results/
-└── README.md
-```
+The project is distributed as a standard Python package using modern
+`pyproject.toml`-based packaging (PEP 517/518). No legacy `setup.py` file is required.
 
-All commands should be executed from the **project root directory**.
+### Prerequisites
+- Python 3.9 or later
+- `pip`
+- (Optional) Azure OpenAI access for real LLM execution
 
----
+### Installation Steps
 
-## Installation
+Clone the repository and install it in editable mode:
 
 ```bash
 git clone https://github.com/ofrik2/prompt-engineering-project.git
@@ -77,115 +53,221 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-Installing the project in editable mode registers the `prompt-lab` CLI and enables
-the framework to be imported as a Python package.
+Installing in editable mode allows:
+- running the project as a CLI tool,
+- importing it as a Python library,
+- iterative development without repeated reinstalls.
 
 ---
 
-## Execution Modes: Dummy vs Azure
+## Running the Project
 
-### Dummy Provider (Debugging & Validation)
+### Quickstart (Recommended for Grading)
+
+To reproduce all experiments and analysis **without external API access**, run:
 
 ```bash
 prompt-lab full --provider dummy
 ```
 
-The dummy provider returns deterministic placeholder outputs and does not require
-any API keys or external services.
+This single command:
+1. Loads the configured dataset(s),
+2. Executes all prompting strategies,
+3. Evaluates model outputs using exact-match metrics,
+4. Produces result files and analysis figures.
 
-This mode was deliberately included to:
-- verify installation correctness regardless of virtual environment,
-- debug the experimental and analysis pipeline independently of model access,
-- ensure reproducibility across machines.
+This mode is deterministic and does not require network access, making it suitable
+for grading and reproducibility.
 
-Separating infrastructure validation from model behavior proved essential during
-development.
+### Step-by-Step Execution
+
+Advanced users may run individual pipeline stages (e.g., experiments only,
+analysis only). These options are exposed through the CLI and internal pipeline
+modules and are useful for debugging or extending the framework.
 
 ---
 
-### Azure OpenAI Provider (Real Experiments)
+## Configuration
+
+### Provider Selection: Dummy vs Azure OpenAI
+
+The framework supports two LLM providers:
+
+#### Dummy Provider
+- Default provider
+- Produces deterministic placeholder outputs
+- Enables full pipeline execution without API calls
+
+This provider was intentionally designed to:
+- validate installation correctness,
+- debug the experimental pipeline,
+- separate infrastructure issues from model behavior.
+
+#### Azure OpenAI Provider
+- Executes real LLM calls using Azure OpenAI
+- Requires explicit configuration via environment variables
+
+### Azure Configuration
+
+To enable Azure OpenAI, create a `.env` file in the project root:
 
 ```bash
-prompt-lab full --provider azure
+cp .env.example .env
 ```
 
-This mode runs real experiments using Azure OpenAI. Users must create a `.env`
-file in the project root:
+Populate the following variables:
 
 ```env
-AZURE_OPENAI_ENDPOINT="https://<your-resource>.openai.azure.com/"
-AZURE_OPENAI_API_KEY="<your-api-key>"
-AZURE_OPENAI_API_VERSION="2024-02-15-preview"
-AZURE_OPENAI_DEPLOYMENT="<deployment-name>"
+AZURE_OPENAI_ENDPOINT=...
+AZURE_OPENAI_API_KEY=...
+AZURE_OPENAI_API_VERSION=...
+AZURE_OPENAI_DEPLOYMENT=...
 ```
 
-Each user supplies their own credentials.
-
----
-# Part II — Experimental Setup & Methodology
-
-## Dataset and Task Design
-
-The experiments are conducted on classification-style tasks with categorical
-ground-truth labels. Each task is designed to require **exactly one-word
-outputs**, such as `positive`, `negative`, `true`, or `false`.
-
-This strict requirement allows us to study not only semantic correctness, but
-also the model’s ability to follow instructions precisely.
-
-The framework supports user-provided datasets in JSON format, enabling
-independent experimentation beyond the provided examples.
+If these variables are missing or incomplete, the system automatically falls back
+to the dummy provider.
 
 ---
 
-## Prompting Strategies
+## Custom Datasets
 
-We evaluate three prompting strategies:
+Experiments operate on JSON-formatted task files. Each task defines:
+- a prompt,
+- a task type,
+- a ground-truth label.
 
-- **Baseline prompting**: concise instructions without examples or explicit
-  reasoning encouragement.
-- **Few-shot prompting**: prompts augmented with example input–output pairs.
-- **Chain-of-Thought (CoT) prompting**: prompts encouraging step-by-step reasoning.
+Example:
+
+```json
+{
+  "id": "task_001",
+  "task_type": "binary_classification",
+  "prompt": "The movie was amazing.",
+  "ground_truth": "positive"
+}
+```
+
+Users can supply their own dataset via:
+
+```bash
+prompt-lab full --provider dummy --dataset-path data/my_tasks.json
+```
+
+This flexibility enables independent experimentation beyond the default tasks.
+
+---
+
+## Project Structure
+
+The repository is organized to separate concerns clearly:
+
+```
+prompt-engineering-project/
+├── pyproject.toml
+├── src/
+│   └── prompt_lab/
+│       ├── methods/          # Prompting strategies (baseline, few-shot, CoT)
+│       ├── evaluator/        # Metrics and evaluation logic
+│       ├── dataset/          # Task loading and handling
+│       ├── utils/
+│       │   └── llm_client.py # Provider-agnostic LLM interface
+│       └── pipeline.py      # End-to-end execution logic
+├── azure_openai_helper/      # Azure-specific API interaction
+├── docs/
+│   ├── ARCHITECTURE.md
+│   └── PROMPT_ENGINEERING_LOG.md
+├── data/
+├── results/
+├── analysis_results/
+└── README.md
+```
+
+This structure supports modular development and clear reasoning about system
+components.
 
 ---
 
-## Prompt Manipulations
+## Agent-Based Development Methodology
 
-Importantly, the experiments do **not** only vary prompt length.
+A central requirement of the course is to demonstrate meaningful use of LLMs as
+agents. In this project, the LLM agent was used throughout the lifecycle, not only
+for isolated tasks.
 
-Across experiments, we manipulate:
-- prompt **length** (short / medium / long),
-- prompt **content**, including:
-  - instruction explicitness,
-  - inclusion of examples,
-  - encouragement of reasoning.
+Specifically, the agent was instructed to:
+- analyze assignment requirements and grading criteria,
+- propose system architectures and abstractions,
+- debug evaluation logic and edge cases,
+- interpret surprising experimental results,
+- audit the repository for missing submission elements,
+- assist in drafting structured academic documentation.
 
-This separation allows us to disentangle verbosity effects from structural
-prompting effects.
+A curated log of these interactions is provided in:
+
+```
+docs/PROMPT_ENGINEERING_LOG.md
+```
+
+This log documents *how* the agent was prompted, *what roles* it assumed, and
+*how its responses influenced design decisions*.
+
+---
+
+## Packaging and Design Decisions
+
+### Modern Packaging Approach
+
+The project uses `pyproject.toml` as the single source of packaging metadata,
+following modern Python standards. This approach:
+- replaces the legacy `setup.py` mechanism,
+- improves reproducibility and security,
+- aligns with current best practices.
+
+### Provider Abstraction
+
+LLM access is abstracted via a provider-agnostic client (`llm_client.py`), while
+Azure-specific logic is isolated in `azure_openai_helper/`.
+
+This separation:
+- avoids coupling experiments to a specific API,
+- simplifies switching between dummy and real providers,
+- improves debuggability and maintainability.
 
 ---
 
-## Evaluation Metrics
+## Reproducibility and Determinism
 
-### Exact-Match Accuracy
+Reproducibility was a key design goal:
 
-Correctness is defined using **exact string match** between the model output and
-the ground-truth label. Any deviation—including additional words—is counted as
-incorrect.
+- Dummy provider ensures deterministic outputs.
+- Configuration is externalized via `.env` and JSON files.
+- All analysis artifacts are generated programmatically.
 
-This choice reflects our emphasis on instruction-following as a primary
-objective.
-
-### Semantic Distance (Auxiliary Analysis)
-
-Embedding-based vector distances are computed to analyze semantic proximity
-between outputs and ground-truth labels. These distances are used for
-interpretation only and do not affect accuracy scores.
+As a result, graders can reproduce the full pipeline in a clean environment using
+a single command.
 
 ---
-# Part III — Results, Research Questions, Discussion & Critical Reflection
 
-## Overview of Results
+## License and Credits
+
+### License
+
+This project is provided for educational purposes as part of a university course
+submission.
+
+### Credits
+
+- Azure OpenAI API
+- Python libraries: pandas, numpy, matplotlib, pytest
+
+---
+
+## Mapping to Submission Guidelines
+This README addresses installation, usage, configuration, reproducibility,
+agent-based development, and experimental analysis as required by the course
+submission guidelines.
+
+# Results
+
 
 The results presented in this section are derived from systematic comparisons
 between prompting strategies, prompt lengths, and prompt content variations.

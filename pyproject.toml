@@ -7,7 +7,7 @@ name = "prompt-lab"
 version = "0.1.0"
 description = "Prompt Engineering Evaluation & Optimization System"
 authors = [
-    { name = "YOUR_NAME_HERE" }
+    { name = "Ofri Kutchinsky & Lior Abuhav" }
 ]
 readme = "README.md"
 requires-python = ">=3.10"
