@@ -22,6 +22,10 @@ data/*
 !data/.gitkeep
 results/*
 !results/.gitkeep
+analysis_results/*
+!analysis_results/.gitkeep
+!analysis_results/*.png
+
 
 # Jupyter
 .ipynb_checkpoints/

@@ -200,6 +200,7 @@ insight into model behavior.
 ### Figure 1 — Overall Accuracy by Prompting Strategy
 
 ![Overall accuracy](analysis_results/overall_accuracy.png)
+![overall_accuracy.png](analysis_results/overall_accuracy.png)
 
 *Figure 1.* Overall exact-match accuracy across prompting strategies. Few-shot
 prompting slightly improves performance over the baseline. In contrast,
