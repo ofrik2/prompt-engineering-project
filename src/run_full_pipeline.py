@@ -46,29 +46,34 @@ def main() -> None:
     )
 
     run_step(
-        "Step 3: Analyzing prompt variation",
+        "Step 3: Plotting overall accuracy by method",
+        "src/analysis/plot_overall_accuracy.py",
+    )
+
+    run_step(
+        "Step 4: Analyzing prompt variation",
         "src/analysis/analyze_prompt_variation.py",
     )
 
     run_step(
-        "Step 4: Comparing methods per task (and disagreement matrix)",
+        "Step 5: Comparing methods per task (and disagreement matrix)",
         "src/analysis/compare_methods_per_task.py",
     )
 
     run_step(
-        "Step 5: Analyzing CoT overthinking",
+        "Step 6: Analyzing CoT overthinking",
         "src/analysis/analyze_cot_overthinking.py",
     )
 
     run_step(
-        "Step 6: Analyzing few-shot effect",
+        "Step 7: Analyzing few-shot effect",
         "src/analysis/analyze_fewshot_effect.py",
     )
 
 
     # 3) Generate HTML report
     run_step(
-        "Step 7: Generating HTML analysis report",
+        "Step 8: Generating HTML analysis report",
         "src/analysis/generate_html_report.py",
     )
 
