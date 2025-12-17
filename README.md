@@ -62,12 +62,17 @@ Installing in editable mode allows:
 
 ## Running the Project
 
-### Quickstart (Recommended for Grading)
+### Quickstart 
 
 To reproduce all experiments and analysis **without external API access**, run:
 
 ```bash
 prompt-lab full --provider dummy
+```
+Or
+
+```bash
+prompt-lab full --provider azure
 ```
 
 This single command:
