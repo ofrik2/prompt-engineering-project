@@ -44,8 +44,14 @@ def html_table(rows: List[Dict[str, str]]) -> str:
     return "\n".join(html)
 
 
-def section_if_exists(title: str, csv_name: Optional[str], img_name: Optional[str], max_rows: int = 10) -> str:
-    """Build an HTML section if at least one of CSV or image exists."""
+def section_if_exists(
+    title: str,
+    csv_name: Optional[str],
+    img_name: Optional[str],
+    max_rows: int = 10,
+    description: Optional[str] = None,
+) -> str:
+    """Build an HTML section with optional description text."""
     parts = []
 
     csv_path = ANALYSIS_DIR / csv_name if csv_name else None
@@ -55,11 +61,13 @@ def section_if_exists(title: str, csv_name: Optional[str], img_name: Optional[st
     has_img = img_path is not None and img_path.exists()
 
     if not has_csv and not has_img:
-        # Skip entire section if nothing is there
         return ""
 
     parts.append(f'<section class="block">')
     parts.append(f"<h2>{title}</h2>")
+
+    if description:
+        parts.append(f"<p>{description}</p>")
 
     if has_img:
         parts.append(f'<div class="image-wrapper"><img src="{img_path.name}" alt="{title} plot"></div>')
@@ -72,6 +80,7 @@ def section_if_exists(title: str, csv_name: Optional[str], img_name: Optional[st
 
     parts.append("</section>")
     return "\n".join(parts)
+
 
 
 def main() -> None:
@@ -118,6 +127,14 @@ def main() -> None:
     sections.append(
         section_if_exists(
             title="Method Disagreement Between Prompting Strategies",
+            description=(
+                "This heatmap shows how often different prompting strategies disagree on the "
+                "<b>final answer</b> for the same task. Each cell (row = Method A, column = Method B) "
+                "contains the fraction of tasks for which Method A and Method B produced "
+                "<i>different</i> predictions. Darker colors mean higher disagreement. "
+                "The diagonal is always zero. High disagreement indicates that the two prompting "
+                "strategies tend to produce different answers even when accuracy may be similar."
+            ),
             csv_name="method_disagreement_matrix.csv",
             img_name="method_disagreement_heatmap.png",
         )
@@ -138,15 +155,6 @@ def main() -> None:
             title="Few-shot Effect: Baseline vs Few-shot",
             csv_name="fewshot_effect_summary.csv",
             img_name="fewshot_effect_plot.png",
-        )
-    )
-
-    # 5. Length vs correctness
-    sections.append(
-        section_if_exists(
-            title="Answer Length vs Correctness",
-            csv_name="length_correlation_summary.csv",
-            img_name="length_correlation_plot.png",
         )
     )
 

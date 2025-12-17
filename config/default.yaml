@@ -11,7 +11,7 @@ experiment:
   name: "baseline_vs_cot_fewshot"
   methods: ["baseline", "cot", "fewshot"]
   dataset: "file"
-  dataset_path: "data/tasks_v1.json"
+  dataset_path: "data/tasks_v2.json"
   output_dir: "results"
 
 fewshot_examples:

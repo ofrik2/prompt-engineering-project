@@ -65,14 +65,10 @@ def main() -> None:
         "src/analysis/analyze_fewshot_effect.py",
     )
 
-    run_step(
-        "Step 7: Analyzing answer length vs correctness",
-        "src/analysis/analyze_length_correlation.py",
-    )
 
     # 3) Generate HTML report
     run_step(
-        "Step 8: Generating HTML analysis report",
+        "Step 7: Generating HTML analysis report",
         "src/analysis/generate_html_report.py",
     )
 
